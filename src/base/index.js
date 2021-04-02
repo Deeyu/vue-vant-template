@@ -1,4 +1,3 @@
-import ZjLoading from './zj-loading'
 // 扫描所有的组件
 const files = require.context('./', true, /^\.\/[\w-_]+\/index\.(js|vue)$/)
 
@@ -13,6 +12,5 @@ export default {
         Vue.component(component.name, component)
       }
     })
-    Vue.use(ZjLoading, {})
-  }
+  },
 }

@@ -57,12 +57,7 @@ module.exports = {
       return args
     })
     // 添加别名
-    config.resolve.alias
-      .set('@', resolve('src'))
-      .set('static', resolve('src/static'))
-      .set('components', resolve('src/components'))
-      .set('views', resolve('src/views'))
-      .set('api', resolve('src/api'))
+    config.resolve.alias.set('@', resolve('src'))
     // 预加载
     config.plugin('preload').tap(() => [
       {

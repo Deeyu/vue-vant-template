@@ -1,34 +1,48 @@
 import axios from 'axios'
-
-// TODO: 请求基础路径，根据项目进行配置,并添加代理
-const baseURL = '/api'
-
-const instance = axios.create({
-  baseURL,
-  // 超时时间 16 秒
-  timeout: 16000,
+import packet from '@/utils/packet'
+import { Toast } from 'vant'
+import { BASE_URL, BASE_URL_DRIVER } from '@/common/constants'
+import store from '@/store'
+import { CLEAR_USER_IFNO } from '@/store/mutation-types'
+const service = axios.create({
+  timeout: 20000,
   headers: {
-    'Content-Type': 'application/json;charset=UTF-8',
+    'Access-Control-Allow-Origin': '*',
+    Accept: 'application/json,text/plain,*/*; charset=utf-8',
   },
 })
+// 免登接口
+let whiteListApi = ['passenger/safe/order/selectMapInfo', 'passenger/safe/order/selectDetail']
 
-// 请求拦截器 添加token， 判断登录之类操作
-instance.interceptors.request.use(
+// 请求拦截
+service.interceptors.request.use(
   config => {
-    // 在这里做认证，可以从store里面获取token
-    // config.headers['Authorization'] = `Bearer ${store.getters.getAccessToken}`
-
-    // 如果get  请求有缓存，可以加这段代码
-    if (config.method === 'get') {
-      const now = `${Date.now()}`
-      if (config.params) {
-        config.params[now] = now
-      } else {
-        const hasParams = config.url.includes('?')
-        config.url = config.url + (hasParams ? '&' : '?') + `${now}=${now}`
-      }
+    const userInfo = store.getters['user/userInfo']
+    let token = null
+    let sslUrl = null
+    if (userInfo) {
+      // 免登接口不传token
+      token = whiteListApi.includes(config.url) ? null : userInfo.token
+      sslUrl = userInfo.sslUrl
     }
-
+    // console.log(config.baseURL, 'serviceType')
+    if (sslUrl) {
+      config.baseURL = sslUrl
+    } else if (!config.baseURL) {
+      config.baseURL = BASE_URL
+    }
+    // 空数据不传
+    if (config.data) {
+      let paramsKey = Object.keys(config.data)
+      if (paramsKey.length == 0) {
+        config.data = { ...packet, token }
+      } else {
+        config.data = { ...packet, data: JSON.stringify(config.data), token }
+      }
+    } else {
+      config.data = { ...packet, token }
+    }
+    console.log('请求参数', config.data)
     return config
   },
   error => {
@@ -36,99 +50,61 @@ instance.interceptors.request.use(
   }
 )
 
-// 响应拦截器，对返回数据进行预处理
-instance.interceptors.response.use(
+// 响应拦截
+service.interceptors.response.use(
   response => {
-    return response
+    if (!response.data) {
+      Toast({ message: '系统繁忙,请稍后再试', forbidClick: true })
+      return
+    }
+    const res = response.data
+    if (res.code !== 1) {
+      // Toast({ message: res.msg || '系统繁忙', forbidClick: true })
+      if (res.code == -13) {
+        store.commit('user/' + CLEAR_USER_IFNO, null)
+      }
+      return Promise.reject(res)
+    } else {
+      try {
+        console.log('响应结果', JSON.parse(res.data))
+        return JSON.parse(res.data)
+      } catch (e) {
+        // openid 返回字符串
+        return res.data
+      }
+    }
   },
   error => {
+    console.log('err', error) // for debug
+    if (error instanceof Error) {
+      Toast({ message: '系统繁忙 请稍后再试', forbidClick: true })
+    }
     return Promise.reject(error)
   }
 )
 /**
- * 对 请求进行封装 只有 status 与 code 都是200 才会进入 then , 否则均进入 catch
- * @param {*} options
+ * get方法，对应get请求
+ * @param {String} url [请求的url地址]
+ * @param {Object} params [请求时携带的参数]
  */
-const request = (options = {}) => {
-  return new Promise((resolve, reject) => {
-    instance(options)
-      .then(({ data, status, statusText }) => {
-        if (status === 200) {
-          resolve(data)
-        } else {
-          reject(statusText)
-        }
-      })
-      .catch(result => {
-        if (!result || !result.response) {
-          reject(result)
-        }
-        const {
-          response: { status, statusText, data = {} },
-        } = result
-        switch (status) {
-          // 未登录
-          case 401:
-            sessionStorage.clear()
-            reject('您还未登录')
-            break
-          case 403:
-            reject('登录失效')
-            break
-          case 404:
-            reject('访问异常，请联系系统管理员')
-            // 请求丢失
-            break
-          default:
-            reject(data.message || statusText)
-            break
-        }
-      })
-  })
+export const get = ({ url, ...config }) => {
+  setDriverURL(config)
+  return service.get(url, config)
 }
-
-const get = (url, params = {}) => {
-  return request({
-    url,
-    method: 'get',
-    params,
-  })
-}
-
-const put = (url, data = {}) => {
-  return request({
-    url,
-    method: 'put',
-    data,
-  })
-}
-
-const post = (url, data = {}) => {
-  return request({
-    url,
-    method: 'post',
-    data,
-  })
-}
-
-const del = (url, data = {}) => {
-  return request({
-    url,
-    method: 'delete',
-    data,
-  })
-}
-// 将获取cancelToken的方法绑定到每个方法上面，方便调用的时候使用
-;[request, get, post, put, del, instance].forEach(item => {
-  item.getCancelToken = () => {
-    return axios.CancelToken
-  }
-})
-
 /**
- * request 对请求进行二次包装，处理了异常编码
- * get
- * set
- * axios 对axios进行包装之后的原生实例
+ * post方法，对应post请求
+ * @param {String} url [请求的url地址]
+ * @param {Object} params [请求时携带的参数]
+ * @param {String} [type = passenger] [请求的baseUrl类型, 默认为乘客服务]
  */
-export { request, get, post, put, del, instance as axios, baseURL }
+export const post = ({ url, params = {}, ...config }) => {
+  setDriverURL(config)
+  return service.post(url, params, config)
+}
+
+function setDriverURL(config) {
+  if (config.serviceType == 'driver') {
+    config.baseURL = BASE_URL_DRIVER
+    delete config.serviceType
+  }
+}

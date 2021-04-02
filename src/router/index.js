@@ -2,7 +2,7 @@ import Vue from 'vue'
 import VueRouter from 'vue-router'
 
 // 为了首屏加载快，所以首页不使用懒加载
-import Home from '../views/home'
+import Home from '@/views/home'
 
 const originalPush = VueRouter.prototype.push
 
@@ -15,7 +15,7 @@ Vue.use(VueRouter)
 // 自动扫描 modules 里面的路由模块，路由模块请根据业务自行拆分
 const files = require.context('./modules', false, /\.js$/)
 
-const routes = []
+let routes = []
 // 获取所有的路由内容
 files.keys().forEach(key => {
   const file = files(key).default
@@ -27,39 +27,21 @@ files.keys().forEach(key => {
   }
 })
 
-routes.push(
-  ...[
-    {
-      path: '/',
-      name: 'Home',
-      component: Home,
-      meta: {
-        title: '首页',
-      },
+routes = [
+  {
+    path: '/',
+    name: 'Home',
+    component: Home,
+    meta: {
+      title: '首页',
     },
-    // 无权限页面
-    {
-      path: '/no-permission',
-      name: 'NoPermission',
-      component: () => import('@/views/error-page/no-permission'),
-      meta: {
-        title: '访问无权限',
-      },
-    },
-    // 404 页面路由
-    {
-      path: '*',
-      name: 'NotFound',
-      component: () => import('@/views/error-page/404'),
-      meta: {
-        title: '页面走丢了',
-      },
-    },
-  ]
-)
+  },
+  ...routes,
+]
 
 const router = new VueRouter({
   routes,
+  mode: 'history',
   // 页面滚动行为
   scrollBehavior(/* to, from, savedPosition */) {
     return {
