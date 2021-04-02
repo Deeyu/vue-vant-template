@@ -1,11 +1,3 @@
-<!--
- * @Author: 冯超
- * @Date: 2020-07-08 16:12:32
- * @LastEditors: 冯超
- * @LastEditTime: 2020-07-10 13:02:25
- * @Description: 文件说明
- * @FilePath: \vue-base\src\App.vue
--->
 <template>
   <div id="app">
     <transition :name="transitionName">
@@ -19,7 +11,7 @@
 export default {
   data() {
     return {
-      transitionName: 'van-slide-right'
+      transitionName: 'van-slide-right',
     }
   },
   created() {
@@ -29,7 +21,7 @@ export default {
     this.$navigation.on('back', () => {
       this.transitionName = 'van-slide-left'
     })
-  }
+  },
 }
 </script>
 
