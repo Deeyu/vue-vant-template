@@ -71,12 +71,12 @@ module.exports = {
     // set svg-sprite-loader
     config.module
       .rule('svg')
-      .exclude.add(resolve('src/svg/icons'))
+      .exclude.add(resolve('src/assets/icons/svg-icons'))
       .end()
     config.module
       .rule('icons')
       .test(/\.svg$/)
-      .include.add(resolve('src/svg/icons')) // 处理svg目录
+      .include.add(resolve('src/assets/icons/svg-icons')) // 处理svg目录
       .end()
       .use('svg-sprite-loader')
       .loader('svg-sprite-loader')

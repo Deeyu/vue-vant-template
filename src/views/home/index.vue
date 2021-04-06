@@ -1,9 +1,12 @@
 <template>
   <div class="home">
-    <van-notice-bar scrollable text="关注微信公众号【前端有的玩】，我们一起玩前端" />
+    <van-notice-bar scrollable text="万顺叫车" />
     <van-list>
       <van-cell title="你看，右下角有一个vConsole,用来调试的" />
       <van-cell title="你再看，地址栏有一个?VNK=xxx,这是路由缓存" />
+      <svg-icon icon-class="service"></svg-icon>
+      <svg-icon icon-class="phone"></svg-icon>
+      <svg-icon icon-class="download"></svg-icon>
     </van-list>
   </div>
 </template>
