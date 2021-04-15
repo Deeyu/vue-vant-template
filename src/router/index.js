@@ -36,6 +36,46 @@ routes = [
       title: '首页',
     },
   },
+  {
+    path: '/scroll',
+    name: 'Scroll',
+    component: () => import('@/views/scroll'),
+    meta: {
+      title: '滚动测试',
+    },
+  },
+  {
+    path: '/addressList',
+    name: 'AddressList',
+    component: () => import('@/views/address-list'),
+    meta: {
+      title: '通讯录',
+    },
+  },
+  {
+    path: '/cityList',
+    name: 'CityList',
+    component: () => import('@/views/city-list'),
+    meta: {
+      title: '城市选择',
+    },
+  },
+  {
+    path: '/slide',
+    name: 'Slide',
+    component: () => import('@/views/slide'),
+    meta: {
+      title: '轮播组件',
+    },
+  },
+  {
+    path: '/recycleList',
+    name: 'RecycleList',
+    component: () => import('@/views/recycle-list'),
+    meta: {
+      title: '虚拟列表',
+    },
+  },
   ...routes,
 ]
 

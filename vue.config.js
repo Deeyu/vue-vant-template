@@ -89,7 +89,7 @@ module.exports = {
       .when(
         !isProd,
         // config => config.devtool('cheap-source-map')cheap-module-eval-source-map
-        config => config.devtool('cheap-source-map')
+        config => config.devtool('cheap-module-eval-source-map')
       )
     config.when(isProd, config => {
       // 打包生成的 runtime.js非常的小，gzip 之后一般只有几 kb，但这个文件又经常会改变，我们每次都需要重新请求它，它的 http 耗时远大于它的执行时间了，所以建议不要将它单独拆包，而是将它内联到我们的 index.html 之中(index.html 本来每次打包都会变)。

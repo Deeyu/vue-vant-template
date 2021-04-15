@@ -111,3 +111,9 @@ export const getWeekDayChinese = (date = Date.now(), prefix = '星期') => {
   const weekday = getWeekDay(date)
   return prefix + ['日', '一', '二', '三', '四', '五', '六'][weekday]
 }
+
+export const getNow = () => {
+  return window.performance && window.performance.now
+    ? window.performance.now() + window.performance.timing.navigationStart
+    : +new Date()
+}
